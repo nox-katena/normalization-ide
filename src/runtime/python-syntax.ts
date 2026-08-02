@@ -2,6 +2,7 @@ import {mkdtemp, rm, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {
+  executePython,
   executeProcess,
   type ProcessExecutor,
 } from './python-runner.js';
@@ -36,7 +37,11 @@ export async function checkPythonSyntax(
 
   try {
     await writeFile(filename, source, 'utf8');
-    const result = await execute('python3', ['-c', SYNTAX_CHECK_SCRIPT, filename]);
+    const result = await executePython(
+      'python3',
+      ['-c', SYNTAX_CHECK_SCRIPT, filename],
+      execute,
+    );
 
     if (result.exitCode !== 0) {
       throw new Error(result.stderr.trim() || 'Python 구문 검사를 실행하지 못했습니다.');

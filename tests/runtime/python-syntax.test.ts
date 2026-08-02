@@ -1,4 +1,5 @@
 import {access, readFile} from 'node:fs/promises';
+import {basename, dirname} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {
   checkPythonSyntax,
@@ -22,8 +23,9 @@ describe('Python syntax checker', () => {
       expect(arguments_).not.toContain(source);
 
       temporaryFile = arguments_[2] ?? '';
-      expect(temporaryFile).toMatch(
-        /starforce-tui-editor-syntax-.+\/buffer\.py$/,
+      expect(basename(temporaryFile)).toBe('buffer.py');
+      expect(basename(dirname(temporaryFile))).toMatch(
+        /^starforce-tui-editor-syntax-/,
       );
       await expect(readFile(temporaryFile, 'utf8')).resolves.toBe(source);
       return {

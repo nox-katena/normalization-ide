@@ -1,4 +1,5 @@
 import {access, readFile} from 'node:fs/promises';
+import {basename, dirname} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {
   runPython,
@@ -43,7 +44,8 @@ describe('Python runner', () => {
         expect(arguments_).not.toContain(SOURCE);
 
         temporaryFile = arguments_[0] ?? '';
-        expect(temporaryFile).toMatch(/starforce-tui-editor-.+\/buffer\.py$/);
+        expect(basename(temporaryFile)).toBe('buffer.py');
+        expect(basename(dirname(temporaryFile))).toMatch(/^starforce-tui-editor-/);
         await expect(readFile(temporaryFile, 'utf8')).resolves.toBe(SOURCE);
         return result;
       });

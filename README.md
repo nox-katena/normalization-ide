@@ -43,6 +43,24 @@ npm ci --include=dev
 npm start -- ./demo.py
 ```
 
+## Portable launchers
+
+These scripts run the app without requiring a global Node.js or npm install. On first
+run they download Node.js 22 into `.starforce-runtime/`, install project dependencies
+with that bundled npm, and then start the TUI.
+
+```powershell
+# Windows
+.\scripts\starforce.cmd .\demo.py
+```
+
+```bash
+# macOS or Linux
+sh ./scripts/starforce.sh ./demo.py
+```
+
+Set `STARFORCE_NODE_VERSION` to override the bundled Node version.
+
 파일이 아직 없어도 빈 버퍼로 실행됩니다. 앱은 15성에 도달하고 사용자가
 `Ctrl+S`를 누르기 전까지 대상 파일을 생성하거나 수정하지 않습니다.
 
