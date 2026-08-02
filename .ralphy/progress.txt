@@ -1,0 +1,16 @@
+# Ralphy Progress Log
+- [✓] 2026-08-02 05:26 - Read PRODUCT.md, tasks.yaml, and AGENTS.md.
+   Create only the minimal runnable seed project.
+   Do not implement product features.
+   Add npm run check and make it pass.
+- [✓] 2026-08-02 05:46 - 직접 입력과 강화권이 연결되는 편집 모델
+- [✓] 2026-08-02 06:10 - 결정론적 스타포스 강화 엔진
+- [✓] 2026-08-02 06:21 - 실패·파괴가 코드와 통계에 남는 강화 흐름
+- [✓] 2026-08-02 06:41 - 편집기와 강화 HUD를 잇는 단일 TUI 화면
+- [✓] 2026-08-02 06:55 - 0~15성 기능 해금과 자체 Undo
+- [✓] 2026-08-02 07:07 - 12성 Python 임시 실행과 결과 패널
+- [✓] 2026-08-02 07:26 - 안전한 파일 저장과 비정상 종료 복구
+- [✓] 2026-08-02 07:43 - 17성 Python 구문 오류 표시
+- [✓] 2026-08-02 08:00 - 20성 Python Syntax highlighting
+- [✓] 2026-08-02 17:17 - Codex recovery: fixed Ink 6 input handling, TypeScript props, lint compatibility, and rendering assertions; `npm run check` passed with 103 tests.
+- [✓] 2026-08-02 17:31 - Fixed macOS DEL-byte Backspace handling so it respects the 5-star lock; `npm run check` passed with 105 tests.
