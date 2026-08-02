@@ -1,0 +1,45 @@
+project:
+  name: soma-ralph-please-do-it
+  language: Unknown
+  framework: ""
+  description: ""
+commands:
+  test: ""
+  lint: ""
+  build: ""
+rules:
+  - Before coding, read PRODUCT.md and AGENTS.md and identify the target TUI
+    behavior, keybindings, states, and acceptance criteria
+  - Work on exactly one task and avoid unrelated refactoring or changes to
+    unrelated TUI screens
+  - Preserve the existing TUI architecture, state management, rendering
+    conventions, and keybinding patterns unless the task explicitly requires
+    changing them
+  - Do not add, remove, or update dependencies
+  - Handle terminal input, resize events, small terminal sizes, long text, empty
+    states, and Unicode text without crashing or corrupting the layout
+  - Restore terminal state on normal exit, cancellation, errors, and SIGINT; do
+    not leave raw mode, cursor visibility, or alternate-screen state corrupted
+  - Do not write debug logs or unstructured output over the active TUI; use the
+    repository's existing logging mechanism
+  - Keep rendering, keyboard handling, and state transitions deterministic and
+    testable without timing-dependent sleeps or assertions
+  - Before reporting task completion, run the repository-defined tests and
+    validation commands relevant to the task, including TUI rendering, input
+    handling, state transitions, and terminal cleanup where applicable
+  - Do not weaken, skip, delete, or rewrite tests merely to make them pass
+  - Do not modify SETUP_PROMPTS.md, PREFLIGHTS.md, PRODUCT.md, AGENTS.md,
+    ralph.environment.json, scripts/ralph-preflight.sh, or files under
+    .ralphy/preflight
+  - Complete exactly one task per iteration and create exactly one descriptive
+    Git commit containing the task implementation, tests, tasks.yaml update, and
+    .ralphy/progress.txt update before reporting completion
+boundaries:
+  never_touch:
+    - SETUP_PROMPTS.md
+    - PREFLIGHTS.md
+    - PRODUCT.md
+    - AGENTS.md
+    - ralph.environment.json
+    - scripts/ralph-preflight.sh
+    - .ralphy/preflight/**
