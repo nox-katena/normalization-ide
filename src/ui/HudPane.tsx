@@ -21,6 +21,7 @@ const STRETCH_UNLOCKS = [17, 20, 22, 25] as const;
 export interface HudPaneProps {
   readonly status: EnhancementStatus;
   readonly syntaxCheck?: SyntaxCheckStatus;
+  readonly dimmed?: boolean;
 }
 
 export type SyntaxCheckStatus =
@@ -33,6 +34,7 @@ export function HudPane({
   syntaxCheck = status.unlocks.pythonSyntax
     ? {status: 'checking'}
     : {status: 'locked'},
+  dimmed = false,
 }: HudPaneProps) {
   const rate = getStarforceRate(status.stars);
   const nextStars = status.stars === 25 ? 'MAX' : `${status.stars + 1}성`;
@@ -42,34 +44,35 @@ export function HudPane({
       : `${status.nextUnlockStars}성 ${UNLOCK_NAMES.get(status.nextUnlockStars) ?? '추가 기능'}`;
 
   return (
-    <Box borderStyle="round" flexDirection="column">
-      <Text bold>STARFORCE HUD</Text>
-      <Text>
+    <Box borderStyle="round" borderDimColor={dimmed} flexDirection="column">
+      <Text bold dimColor={dimmed}>STARFORCE HUD</Text>
+      <Text dimColor={dimmed}>
         현재/다음 별: {status.stars}성 → {nextStars}
       </Text>
-      <Text>강화권: {status.enhancementTickets}장</Text>
-      <Text>
+      <Text dimColor={dimmed}>강화권: {status.enhancementTickets}장</Text>
+      <Text dimColor={dimmed}>
         확률: 성공 {rate?.success ?? 0}% · 실패 {rate?.failure ?? 0}% · 파괴{' '}
         {rate?.destruction ?? 0}%
       </Text>
-      <Text>다음 해금: {nextUnlock}</Text>
-      <Text>
+      <Text dimColor={dimmed}>다음 해금: {nextUnlock}</Text>
+      <Text dimColor={dimmed}>
         직접 입력: {status.totalDirectInputs}타 · 현재 문자: {status.currentGraphemes}자
       </Text>
-      <Text>
+      <Text dimColor={dimmed}>
         소실: 실패 {status.failureLostGraphemes}자 · 파괴{' '}
         {status.destructionLostGraphemes}자
       </Text>
-      <Text>생산성: {formatPercent(status.productivityPercent)}%</Text>
-      <Text>17~25성 해금 예정:</Text>
+      <Text dimColor={dimmed}>생산성: {formatPercent(status.productivityPercent)}%</Text>
+      <Text dimColor={dimmed}>17~25성 해금 예정:</Text>
       {STRETCH_UNLOCKS.map((stars) => (
-        <Text key={stars}>
+        <Text key={stars} dimColor={dimmed}>
           {status.stars >= stars ? '[해금]' : '[잠금]'} {stars}성{' '}
           {UNLOCK_NAMES.get(stars)}
         </Text>
       ))}
       {status.unlocks.pythonSyntax ? (
         <Text
+          dimColor={dimmed}
           {...(syntaxCheck.status === 'invalid' ? {color: 'red'} : {})}
         >
           {formatSyntaxCheck(syntaxCheck)}

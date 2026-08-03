@@ -13,6 +13,7 @@ export interface EditorPaneProps {
   readonly focused: boolean;
   readonly stars: number;
   readonly diagnostic?: PythonSyntaxDiagnostic | null;
+  readonly dimmed?: boolean;
 }
 
 export function EditorPane({
@@ -20,6 +21,7 @@ export function EditorPane({
   focused,
   stars,
   diagnostic = null,
+  dimmed = false,
 }: EditorPaneProps) {
   const {stdout} = useStdout();
   const unlocks = getUnlockState(stars);
@@ -65,10 +67,12 @@ export function EditorPane({
       {...(unlocks.monochromeEditor
         ? {}
         : {borderColor: focused ? 'cyan' : 'gray'})}
+      borderDimColor={dimmed}
       flexDirection="column"
     >
       <Text
         bold
+        dimColor={dimmed}
         {...(unlocks.monochromeEditor ? {} : {color: editorColor})}
       >
         {focused ? '▶ EDITOR (focused)' : '  EDITOR'}
@@ -80,7 +84,7 @@ export function EditorPane({
             : null;
 
         return (
-          <Text key={index} wrap="truncate-end">
+          <Text key={index} wrap="truncate-end" dimColor={dimmed}>
             {unlocks.lineNumbers
               ? `${String(index + 1).padStart(lineNumberWidth)} │ `
               : ''}
@@ -99,6 +103,7 @@ export function EditorPane({
                       focused={focused}
                       color={editorColor}
                       monochrome={unlocks.monochromeEditor}
+                      dimmed={dimmed}
                     />
                   ) : null}
                   <Text
@@ -115,6 +120,7 @@ export function EditorPane({
                 focused={focused}
                 color={editorColor}
                 monochrome={unlocks.monochromeEditor}
+                dimmed={dimmed}
               />
             ) : null}
             {diagnosticIndex === line.length ? (
@@ -124,7 +130,7 @@ export function EditorPane({
         );
       })}
       {visibleDiagnostic !== null ? (
-        <Text color="red">
+        <Text color="red" dimColor={dimmed}>
           ▲ 구문 오류 · {visibleDiagnostic.line}행 {visibleDiagnostic.column}열 ·{' '}
           {visibleDiagnostic.message}
         </Text>
@@ -137,11 +143,12 @@ interface CursorProps {
   readonly focused: boolean;
   readonly color: string;
   readonly monochrome: boolean;
+  readonly dimmed: boolean;
 }
 
-function Cursor({focused, color, monochrome}: CursorProps) {
+function Cursor({focused, color, monochrome, dimmed}: CursorProps) {
   return (
-    <Text inverse={focused} {...(monochrome ? {} : {color})}>
+    <Text inverse={focused} dimColor={dimmed} {...(monochrome ? {} : {color})}>
       ▌
     </Text>
   );
