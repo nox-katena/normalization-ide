@@ -103,7 +103,12 @@ function mountApp(
   const stdout = new TestOutput();
   const stderr = new TestOutput();
   const instance = render(
-    <App initialState={initialState} random={random} clock={() => NOW} />,
+    <App
+      initialState={initialState}
+      random={random}
+      clock={() => NOW}
+      animationWait={async () => undefined}
+    />,
     {
       stdin: stdin as unknown as NodeJS.ReadStream,
       stdout: stdout as unknown as NodeJS.WriteStream,

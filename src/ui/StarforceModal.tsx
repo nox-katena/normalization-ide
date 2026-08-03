@@ -2,6 +2,7 @@ import {basename} from 'node:path';
 import {Box, Text} from 'ink';
 import type {EnhancementStatus} from '../domain/enhancement-flow.js';
 import {getStarforceRate} from '../domain/starforce-rates.js';
+import type {EnhancementAnimationPhase} from './enhancement-animation.js';
 
 export type StarforceModalLayout = 'full' | 'compact' | 'minimal';
 
@@ -20,6 +21,10 @@ const GOLD_INSET = '#382A22';
 const WARNING_BORDER = '#CD7662';
 const WARNING_TEXT = '#FFD0C6';
 const WARNING_SURFACE = '#5A3028';
+const FAILURE = '#F0A35E';
+const FAILURE_SURFACE = '#563522';
+const DESTROYED = '#FF6B68';
+const DESTROYED_SURFACE = '#562627';
 
 export const STARFORCE_MODAL_PALETTE = {
   border: GOLD,
@@ -40,6 +45,8 @@ export interface StarforceModalProps {
   readonly terminalRows: number;
   readonly targetPath?: string;
   readonly colorEnabled?: boolean;
+  readonly phase?: EnhancementAnimationPhase;
+  readonly recentRemovedGraphemes?: number;
 }
 
 export function getStarforceModalLayout(
@@ -64,6 +71,8 @@ export function StarforceModal({
   terminalRows,
   targetPath,
   colorEnabled = true,
+  phase = 'ready',
+  recentRemovedGraphemes = 0,
 }: StarforceModalProps) {
   const layout = getStarforceModalLayout(terminalColumns, terminalRows);
   const rate = getStarforceRate(status.stars);
@@ -94,6 +103,7 @@ export function StarforceModal({
         </Text>
       </Box>
 
+      {phase === 'ready' ? <>
       <Box justifyContent="center" paddingX={1}>
         <Text bold {...colorProps(colors?.border)} wrap="truncate-end">
           {formatStars(status.stars, layout)}
@@ -166,6 +176,16 @@ export function StarforceModal({
           </Box>
         </>
       )}
+      </> : phase === 'result' ? (
+        <ResultFeedback
+          status={status}
+          removed={recentRemovedGraphemes}
+          layout={layout}
+          colorEnabled={colorEnabled}
+        />
+      ) : (
+        <AnimationFeedback phase={phase} color={colors?.title} />
+      )}
 
       {shouldShowMessage(message) ? (
         <Box justifyContent="center" paddingX={1}>
@@ -184,17 +204,111 @@ export function StarforceModal({
         paddingX={1}
       >
         <Text bold {...colorProps(colors?.text)} wrap="truncate-end">
-          [ SPACE ] 강화{layout === 'full' ? '하기' : ''}
+          {phase === 'result'
+            ? '[ SPACE ] 확인'
+            : phase === 'ready'
+              ? `[ SPACE ] 강화${layout === 'full' ? '하기' : ''}`
+              : '[ 강화 중... ]'}
         </Text>
       </Box>
 
-      {layout === 'full' ? (
+      {layout === 'full' && !isAnimationPhase(phase) ? (
         <Box justifyContent="center">
           <Text dimColor {...colorProps(colors?.title)}>Tab/Esc 닫기</Text>
         </Box>
       ) : null}
     </Box>
   );
+}
+
+interface AnimationFeedbackProps {
+  readonly phase: Exclude<EnhancementAnimationPhase, 'ready' | 'result'>;
+  readonly color: string | undefined;
+}
+
+function AnimationFeedback({phase, color}: AnimationFeedbackProps) {
+  const beat =
+    phase === 'pulse-one'
+      ? '✦  강화 중 .'
+      : phase === 'pulse-two'
+        ? '✦  강화 중 ..'
+        : '✦  강화 중 ...  ✦';
+
+  return (
+    <Box minHeight={8} flexDirection="column" alignItems="center" justifyContent="center">
+      <Text bold {...colorProps(color)}>{beat}</Text>
+      <Text dimColor>별의 힘이 응축되고 있습니다</Text>
+    </Box>
+  );
+}
+
+interface ResultFeedbackProps {
+  readonly status: EnhancementStatus;
+  readonly removed: number;
+  readonly layout: StarforceModalLayout;
+  readonly colorEnabled: boolean;
+}
+
+function ResultFeedback({
+  status,
+  removed,
+  layout,
+  colorEnabled,
+}: ResultFeedbackProps) {
+  const recent = status.recentEnhancement;
+
+  if (recent === null) {
+    return null;
+  }
+
+  const success = recent.result === 'success';
+  const destroyed = recent.result === 'destroyed';
+  const color = colorEnabled
+    ? success
+      ? GOLD_TITLE
+      : destroyed
+        ? DESTROYED
+        : FAILURE
+    : undefined;
+  const backgroundColor = colorEnabled
+    ? success
+      ? GOLD_INSET
+      : destroyed
+        ? DESTROYED_SURFACE
+        : FAILURE_SURFACE
+    : undefined;
+  const title = success
+    ? '✦ SUCCESS ✦'
+    : destroyed
+      ? '☠ DESTROYED ☠'
+      : '× FAILED ×';
+  const detail = success
+    ? `${recent.starsBefore}성  ➜  ${recent.starsAfter}성`
+    : destroyed
+      ? `전체 ${removed}자 소실 · 0성 초기화`
+      : `최근 입력 ${removed}자 소실`;
+
+  return (
+    <Box
+      marginX={1}
+      minHeight={layout === 'minimal' ? 4 : 7}
+      borderStyle={destroyed ? 'double' : 'single'}
+      borderColor={color}
+      backgroundColor={backgroundColor}
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      paddingX={1}
+    >
+      <Text bold {...colorProps(color)}>{title}</Text>
+      <Text bold {...colorProps(color)} wrap="truncate-end">{detail}</Text>
+      <Text {...colorProps(color)}>보유 강화권 {status.enhancementTickets}장</Text>
+    </Box>
+  );
+}
+
+function isAnimationPhase(phase: EnhancementAnimationPhase): boolean {
+  return phase !== 'ready' && phase !== 'result';
 }
 
 interface ProbabilityRowsProps {

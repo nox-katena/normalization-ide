@@ -290,4 +290,4 @@ tasks:
         npm test -- tests/tui/starforce-animation.test.tsx
         npm run typecheck
         npm run check
-    completed: false
+    completed: true

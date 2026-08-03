@@ -33,6 +33,13 @@ import {EditorPane} from './EditorPane.js';
 import {HudPane, type SyntaxCheckStatus} from './HudPane.js';
 import {ResultPane} from './ResultPane.js';
 import {StarforceModal} from './StarforceModal.js';
+import {
+  isEnhancementAnimating,
+  playEnhancementAnimation,
+  waitForAnimation,
+  type AnimationWait,
+  type EnhancementAnimationPhase,
+} from './enhancement-animation.js';
 
 export const APP_TITLE = 'Starforce TUI Editor';
 
@@ -71,6 +78,7 @@ export interface AppProps {
   readonly syntaxChecker?: PythonSyntaxChecker;
   readonly fileSaver?: FileSaver;
   readonly recoveryWriter?: RecoveryWriter;
+  readonly animationWait?: AnimationWait;
 }
 
 export function createAppModel(
@@ -193,6 +201,7 @@ export function App({
   syntaxChecker = checkPythonSyntax,
   fileSaver = writeTargetFile,
   recoveryWriter,
+  animationWait = waitForAnimation,
 }: AppProps) {
   const {exit} = useApp();
   const {stdout} = useStdout();
@@ -202,6 +211,8 @@ export function App({
     initialRecovery === null ? 'editing' : 'recovery',
   );
   const [busy, setBusy] = useState(false);
+  const [enhancementPhase, setEnhancementPhase] =
+    useState<EnhancementAnimationPhase>('ready');
   const syntaxSource = getText(model.flow.editor);
   const syntaxUnlocked = getUnlockState(model.flow.stars).pythonSyntax;
   const [syntaxResult, setSyntaxResult] = useState<{
@@ -214,6 +225,8 @@ export function App({
   const dirtyRef = useRef(false);
   const previousFlow = useRef(model.flow);
   const syntaxRequestRef = useRef(0);
+  const enhancementPhaseRef = useRef<EnhancementAnimationPhase>('ready');
+  const animationGenerationRef = useRef(0);
   const latestSyntaxContext = useRef({
     source: syntaxSource,
     unlocked: syntaxUnlocked,
@@ -224,6 +237,7 @@ export function App({
   };
   const inputContext = useRef({
     busy,
+    animationWait,
     clock,
     dialog,
     exit,
@@ -237,6 +251,7 @@ export function App({
   });
   inputContext.current = {
     busy,
+    animationWait,
     clock,
     dialog,
     exit,
@@ -254,6 +269,12 @@ export function App({
         syntaxResult.check.status !== 'locked'
       ? syntaxResult.check
       : {status: 'checking'};
+
+  useEffect(() => {
+    return () => {
+      animationGenerationRef.current += 1;
+    };
+  }, []);
 
   useEffect(() => {
     if (previousFlow.current === model.flow) {
@@ -329,6 +350,7 @@ export function App({
 
   const handleInput = useCallback((input: string, key: AppInputKey) => {
     const {
+      animationWait,
       busy,
       clock,
       dialog,
@@ -404,7 +426,69 @@ export function App({
     }
 
     if (model.focus === 'enhancement') {
-      setModel(handleAppInput(model, input, key, random, clock ?? (() => new Date())));
+      if (isEnhancementAnimating(enhancementPhaseRef.current)) {
+        return;
+      }
+
+      if (key.tab || key.escape) {
+        enhancementPhaseRef.current = 'ready';
+        setEnhancementPhase('ready');
+        setModel(handleAppInput(model, input, key, random, clock ?? (() => new Date())));
+        return;
+      }
+
+      if (input !== ' ' || key.ctrl) {
+        return;
+      }
+
+      if (enhancementPhaseRef.current === 'result') {
+        enhancementPhaseRef.current = 'ready';
+        setEnhancementPhase('ready');
+        setModel((current) => ({
+          ...current,
+          message: '강화 결과를 확인했습니다.',
+        }));
+        return;
+      }
+
+      const nextModel = handleAppInput(
+        model,
+        input,
+        key,
+        random,
+        clock ?? (() => new Date()),
+      );
+
+      if (nextModel.flow === model.flow) {
+        setModel(nextModel);
+        return;
+      }
+
+      const generation = ++animationGenerationRef.current;
+      void playEnhancementAnimation(animationWait, (phase) => {
+        if (animationGenerationRef.current === generation) {
+          enhancementPhaseRef.current = phase;
+          setEnhancementPhase(phase);
+        }
+      }).then(
+        () => {
+          if (animationGenerationRef.current === generation) {
+            setModel(nextModel);
+            enhancementPhaseRef.current = 'result';
+            setEnhancementPhase('result');
+          }
+        },
+        (error: unknown) => {
+          if (animationGenerationRef.current === generation) {
+            enhancementPhaseRef.current = 'ready';
+            setEnhancementPhase('ready');
+            setModel((current) => ({
+              ...current,
+              message: `강화 연출 오류: ${formatError(error)}`,
+            }));
+          }
+        },
+      );
       return;
     }
 
@@ -511,6 +595,10 @@ export function App({
     if (nextModel.flow.editor.buffer !== model.flow.editor.buffer) {
       dirtyRef.current = true;
     }
+    if (model.focus === 'editor' && nextModel.focus === 'enhancement') {
+      enhancementPhaseRef.current = 'ready';
+      setEnhancementPhase('ready');
+    }
     setModel(nextModel);
   }, []);
 
@@ -584,6 +672,10 @@ export function App({
             message={model.message}
             terminalColumns={terminalSize.columns}
             terminalRows={terminalSize.rows}
+            phase={enhancementPhase}
+            recentRemovedGraphemes={
+              model.flow.destructionTraces.at(-1)?.removed.length ?? 0
+            }
             {...(targetPath === undefined ? {} : {targetPath})}
             colorEnabled={terminalSupportsColor(stdout)}
           />
