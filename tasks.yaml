@@ -231,3 +231,63 @@ tasks:
         npm run typecheck
         npm run check
     completed: true
+
+  - id: polish-01
+    type: polish
+    title: "중앙 강화 모달과 입력 포커스 격리"
+    estimate_minutes: 30
+    dependencies:
+      - stretch-02
+    description: |-
+      목표:
+        기존 강화 포커스를 클래식 골드 톤의 중앙 모달로 재구성하고, 강화 중 코드 입력을 완전히 차단하는 독립적인 TUI vertical slice를 완성한다.
+
+      Acceptance criteria:
+        - 편집기 포커스에서 Tab을 누르면 배경 편집기와 HUD가 어두워지고 중앙 강화 모달이 열린다.
+        - 모달은 25성 별 게이지, 대상 파일 basename과 중립적인 코드 슬롯, 현재/다음 별, 강화권, 성공·실패·파괴 확률과 실패 위험을 표시한다.
+        - 모달의 기본 스타일은 실제 게임 자산 없이 문자와 ANSI 색상으로 표현한 클래식 골드 톤이다.
+        - 모달이 열린 동안 문자·공백·개행·Backspace·방향키와 Ctrl+Z/R/S 입력이 편집기, 실행 또는 저장 상태를 변경하지 않는다.
+        - ready 상태에서 Space만 강화를 시작하며 Tab 또는 Esc는 상태 손실 없이 모달을 닫고 편집기 포커스로 돌아간다.
+        - 강화권이 없거나 현재 별이 25성이면 상태 변경 없이 이유를 모달 안에 표시한다.
+        - 터미널 크기에 따라 전체형, 축약형, 최소 안전형의 3단계 레이아웃을 사용한다.
+        - 축약형은 파일 슬롯과 보조 설명을 숨기되 25성 게이지, 현재/다음 별, 확률, 강화권, 위험 안내와 입력을 유지한다.
+        - 최소 안전형은 별을 현재 단계/25 형태로 축약하고 확률을 세로로 배치하되 강화에 필요한 정보와 결과를 유지한다.
+        - 세 레이아웃의 전환 기준은 대표 터미널 크기의 headless 렌더링에서 잘림이 발생하지 않는 열·행으로 고정한다.
+        - 색상 미지원 환경에서도 문구와 테두리만으로 포커스와 상태를 구분한다.
+        - 모달 열기·닫기, 입력 차단, 강화 거부, 일반/축약 렌더링을 headless TUI 테스트로 검증한다.
+
+      검증 명령:
+        npm test -- tests/tui/starforce-modal.test.tsx
+        npm run typecheck
+        npm run check
+    completed: false
+
+  - id: polish-02
+    type: polish
+    title: "단계형 강화 연출과 결과별 피드백"
+    estimate_minutes: 30
+    dependencies:
+      - polish-01
+    description: |-
+      목표:
+        강화 모달에 강화 중·별 반짝임·결과판의 결정론적 연출과 성공·실패·파괴별 피드백, 연속 강화 흐름을 추가한다.
+
+      Acceptance criteria:
+        - 유효한 Space 강화는 강화권을 정확히 한 장 소비하고 enhancing, 별 반짝임, result 순서로 진행한다.
+        - enhancing 동안 추가 입력은 코드 편집, 모달 종료 또는 중복 강화를 일으키지 않는다.
+        - 성공 결과판은 금색 성공 문양과 상승 전·후 별을 표시하고 코드를 유지한다.
+        - 일반 실패 결과판은 주황색 실패 문양과 실제 소실된 최근 직접 입력 문자 수를 표시한다.
+        - 파괴 결과판은 붉은 이중 테두리와 파괴 문양, 전체 소실 문자 수와 0성 초기화를 표시한다.
+        - result 상태에서 강화권이 남아 있으면 Space로 모달을 유지한 채 다음 강화를 시작한다.
+        - result 상태의 Tab 또는 Esc는 갱신된 강화 상태를 유지하고 편집기로 돌아간다.
+        - 강화권이 없는 result 상태의 Space는 새 강화를 실행하지 않고 부족 안내를 표시한다.
+        - 강화 시작부터 결과판 표시까지의 전체 연출 목표는 약 1초다.
+        - 단계별 연출 시간은 주입 가능한 스케줄러 또는 시계로 제어하며 테스트가 실제 시간이나 타이밍에 의존하지 않는다.
+        - 색상 미지원 환경에서도 문양·테두리·문구로 세 결과를 구분한다.
+        - 성공·실패·파괴, 입력 잠금, 연속 강화와 모달 종료를 headless TUI 테스트로 검증한다.
+
+      검증 명령:
+        npm test -- tests/tui/starforce-animation.test.tsx
+        npm run typecheck
+        npm run check
+    completed: false
