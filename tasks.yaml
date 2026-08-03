@@ -260,7 +260,7 @@ tasks:
         npm test -- tests/tui/starforce-modal.test.tsx
         npm run typecheck
         npm run check
-    completed: false
+    completed: true
 
   - id: polish-02
     type: polish

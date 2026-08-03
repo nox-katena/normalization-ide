@@ -162,7 +162,8 @@ describe('editor and Starforce HUD', () => {
     try {
       mounted.stdin.write('\t');
       await flushRender();
-      expect(mounted.stdout.text()).toContain('▶ [ SPACE 강화 ] (focused)');
+      expect(mounted.stdout.text()).toContain('✦ 장비 강화 ✦');
+      expect(mounted.stdout.text()).toContain('[ SPACE ] 강화하기');
 
       mounted.stdout.reset();
       mounted.stdin.write(' ');
@@ -191,7 +192,7 @@ describe('editor and Starforce HUD', () => {
       await flushRender();
 
       expect(mounted.stdout.text()).toContain(
-        'HUD: 강화권이 없습니다. 직접 입력 10타마다 1장을 얻습니다.',
+        '강화권이 없습니다. 직접 입력 10타마다 1장을 얻습니다.',
       );
       expect(mounted.stdout.text()).toContain('현재/다음 별: 0성 → 1성');
       expect(mounted.stdout.text()).toContain('safe');

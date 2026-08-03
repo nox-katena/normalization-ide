@@ -1,4 +1,4 @@
-import {Box, Text, useApp, useInput} from 'ink';
+import {Box, Text, useApp, useInput, useStdout} from 'ink';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {
   createEnhancementFlowState,
@@ -32,6 +32,7 @@ import {writeTargetFile} from '../persistence/file-store.js';
 import {EditorPane} from './EditorPane.js';
 import {HudPane, type SyntaxCheckStatus} from './HudPane.js';
 import {ResultPane} from './ResultPane.js';
+import {StarforceModal} from './StarforceModal.js';
 
 export const APP_TITLE = 'Starforce TUI Editor';
 
@@ -90,12 +91,25 @@ export function handleAppInput(
   random: RandomSource = Math.random,
   clock: Clock = () => new Date(),
 ): AppModel {
+  if (model.focus === 'enhancement') {
+    if (key.tab || key.escape) {
+      return {
+        ...model,
+        focus: 'editor',
+        message: '편집기 포커스',
+      };
+    }
+
+    return input === ' ' && !key.ctrl
+      ? enhance(model, random, clock)
+      : model;
+  }
+
   if (key.tab) {
-    const focus = model.focus === 'editor' ? 'enhancement' : 'editor';
     return {
       ...model,
-      focus,
-      message: focus === 'editor' ? '편집기 포커스' : '강화 버튼 포커스',
+      focus: 'enhancement',
+      message: '강화창 포커스',
     };
   }
 
@@ -119,15 +133,6 @@ export function handleAppInput(
 
     const unlockMessage = getLockedShortcutMessage(input, unlocks);
     return unlockMessage === null ? model : {...model, message: unlockMessage};
-  }
-
-  if (model.focus === 'enhancement') {
-    return input === ' '
-      ? enhance(model, random, clock)
-      : {
-          ...model,
-          message: '강화 버튼에서는 Space로 강화합니다. Tab으로 편집기로 돌아가세요.',
-        };
   }
 
   const editor = model.flow.editor;
@@ -190,6 +195,8 @@ export function App({
   recoveryWriter,
 }: AppProps) {
   const {exit} = useApp();
+  const {stdout} = useStdout();
+  const terminalSize = useTerminalSize(stdout);
   const [model, setModel] = useState(() => createAppModel(initialState));
   const [dialog, setDialog] = useState<'editing' | 'recovery' | 'quit'>(() =>
     initialRecovery === null ? 'editing' : 'recovery',
@@ -396,6 +403,11 @@ export function App({
       return;
     }
 
+    if (model.focus === 'enhancement') {
+      setModel(handleAppInput(model, input, key, random, clock ?? (() => new Date())));
+      return;
+    }
+
     if (key.ctrl && input.toLowerCase() === 'q') {
       if (dirtyRef.current) {
         setDialog('quit');
@@ -508,30 +520,43 @@ export function App({
   const enhancementFocused = model.focus === 'enhancement';
 
   return (
-    <Box flexDirection="column">
-      <Text bold>{APP_TITLE}</Text>
+    <Box
+      position="relative"
+      width={terminalSize.columns}
+      height={terminalSize.rows}
+      flexDirection="column"
+      overflow="hidden"
+    >
+      <Text bold dimColor={enhancementFocused}>{APP_TITLE}</Text>
       <EditorPane
         editor={model.flow.editor}
         focused={model.focus === 'editor'}
         stars={status.stars}
+        dimmed={enhancementFocused}
         diagnostic={
           syntaxCheck.status === 'invalid' ? syntaxCheck.diagnostic : null
         }
       />
-      <HudPane status={status} syntaxCheck={syntaxCheck} />
+      <HudPane
+        status={status}
+        syntaxCheck={syntaxCheck}
+        dimmed={enhancementFocused}
+      />
       <Box
         borderStyle="round"
-        borderColor={enhancementFocused ? 'yellow' : 'gray'}
+        borderColor="gray"
+        borderDimColor={enhancementFocused}
         justifyContent="center"
       >
-        <Text bold={enhancementFocused} color={enhancementFocused ? 'yellow' : 'white'}>
-          {enhancementFocused ? '▶ [ SPACE 강화 ] (focused)' : '  [ SPACE 강화 ]'}
+        <Text dimColor={enhancementFocused}>
+          [ TAB ] 강화창 열기
         </Text>
       </Box>
       <ResultPane
         recent={status.recentEnhancement}
         message={model.message}
         pythonResult={model.pythonResult}
+        dimmed={enhancementFocused}
       />
       {dialog === 'recovery' ? (
         <Box borderStyle="double" borderColor="yellow">
@@ -546,8 +571,57 @@ export function App({
       <Text dimColor>
         Tab: 포커스 전환 · Space: 편집/강화 · Ctrl+Z/R/S: 해금 예정 · Ctrl+Q/C: 종료
       </Text>
+      {enhancementFocused ? (
+        <Box
+          position="absolute"
+          width="100%"
+          height="100%"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <StarforceModal
+            status={status}
+            message={model.message}
+            terminalColumns={terminalSize.columns}
+            terminalRows={terminalSize.rows}
+            {...(targetPath === undefined ? {} : {targetPath})}
+            colorEnabled={terminalSupportsColor(stdout)}
+          />
+        </Box>
+      ) : null}
     </Box>
   );
+}
+
+function useTerminalSize(stdout: NodeJS.WriteStream): {
+  readonly columns: number;
+  readonly rows: number;
+} {
+  const readSize = () => ({
+    columns: Math.max(1, stdout.columns ?? 80),
+    rows: Math.max(1, stdout.rows ?? 24),
+  });
+  const [size, setSize] = useState(readSize);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setSize(readSize());
+    };
+    stdout.on('resize', handleResize);
+    return () => {
+      stdout.off('resize', handleResize);
+    };
+  }, [stdout]);
+
+  return size;
+}
+
+function terminalSupportsColor(stdout: NodeJS.WriteStream): boolean {
+  if (!stdout.isTTY) {
+    return false;
+  }
+
+  return typeof stdout.hasColors === 'function' ? stdout.hasColors() : true;
 }
 
 async function discardRecovery(
