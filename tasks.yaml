@@ -319,4 +319,4 @@ tasks:
         npm test -- tests/tui/starforce-hud.test.tsx tests/tui/editor-hud.test.tsx tests/tui/syntax-errors.test.tsx
         npm run typecheck
         npm run check
-    completed: false
+    completed: true

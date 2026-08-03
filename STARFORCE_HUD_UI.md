@@ -1,6 +1,6 @@
 # 반응형 스타포스 HUD 대시보드
 
-status:: draft
+status:: active
 
 ## Purpose
 

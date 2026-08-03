@@ -629,6 +629,8 @@ export function App({
         status={status}
         syntaxCheck={syntaxCheck}
         dimmed={enhancementFocused}
+        terminalColumns={terminalSize.columns}
+        colorEnabled={terminalSupportsColor(stdout)}
       />
       <Box
         borderStyle="round"

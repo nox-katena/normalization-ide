@@ -138,7 +138,7 @@ describe('단계형 강화 연출', () => {
       mounted.stdin.write(' ');
       await flushRender();
       expect(mounted.stdout.text()).toContain('✦  강화 중 .');
-      expect(mounted.stdout.text()).toContain('강화권: 1장');
+      expect(mounted.stdout.text()).toContain('강화권 1장');
       expect(mounted.stdout.text()).not.toContain('SUCCESS');
 
       mounted.stdin.write(' ');
@@ -198,7 +198,7 @@ describe('단계형 강화 연출', () => {
       mounted.stdout.reset();
       mounted.stdin.write('\t');
       await flushRender();
-      expect(mounted.stdout.text()).toContain('현재/다음 별: 2성 → 3성');
+      expect(mounted.stdout.text()).toContain('★ 2성 → 3성');
       expect(mounted.stdout.text()).toContain('최근 결과: 성공 (1성 → 2성)');
       expect(mounted.stdout.text()).not.toContain('✦ SUCCESS ✦');
     } finally {
@@ -236,7 +236,7 @@ describe('단계형 강화 연출', () => {
       mounted.stdout.reset();
       mounted.stdin.write('\u001B');
       await flushRender();
-      expect(mounted.stdout.text()).toContain('현재/다음 별: 1성 → 2성');
+      expect(mounted.stdout.text()).toContain('★ 1성 → 2성');
       expect(mounted.stdout.text()).not.toContain('✦ SUCCESS ✦');
     } finally {
       mounted.instance.unmount();
