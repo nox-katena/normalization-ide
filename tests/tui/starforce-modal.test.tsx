@@ -274,7 +274,7 @@ describe('Starforce modal input isolation', () => {
       const screen = stdout.text();
       expect(screen).toContain('▶ EDITOR (focused)');
       expect(screen).toContain('1234567890▌');
-      expect(screen).toContain('직접 입력: 10타 · 현재 문자: 10자');
+      expect(screen).toContain('INPUT 10 │ BUFFER 10');
     } finally {
       instance.unmount();
     }

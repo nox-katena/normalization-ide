@@ -25,12 +25,12 @@ const FOREGROUND_COLOR = new RegExp(
 );
 const NOW = new Date('2026-08-02T03:04:05.000Z');
 const SUCCESS_BOUNDARIES = [
-  [2, 3, 'lineNumbers', '5성 Backspace'],
-  [4, 5, 'backspace', '7성 공백 입력'],
-  [6, 7, 'spaceInput', '10성 Ctrl+Z Undo'],
-  [9, 10, 'undo', '12성 Python 실행'],
-  [11, 12, 'pythonRun', '15성 파일 저장'],
-  [14, 15, 'fileSave', '17성 Python 구문 오류 표시'],
+  [2, 3, 'lineNumbers', '5성 · Backspace'],
+  [4, 5, 'backspace', '7성 · 공백 입력'],
+  [6, 7, 'spaceInput', '10성 · Ctrl+Z Undo'],
+  [9, 10, 'undo', '12성 · Python 실행'],
+  [11, 12, 'pythonRun', '15성 · 파일 저장'],
+  [14, 15, 'fileSave', '17성 · Python 구문 오류'],
 ] as const;
 
 class TestInput extends Readable {
@@ -164,7 +164,7 @@ describe('unlock rendering', () => {
 
       expect(model.flow.stars).toBe(afterStars);
       expect(getEnhancementStatus(model.flow).unlocks[feature]).toBe(true);
-      expect(renderStatus(model.flow)).toContain(`다음 해금: ${nextUnlock}`);
+      expect(renderStatus(model.flow)).toContain(`NEXT ${nextUnlock}`);
     },
   );
 });
@@ -213,7 +213,7 @@ describe('unlock keyboard handling', () => {
       await flushRender();
 
       expect(stdout.text()).toContain('HUD: Backspace는 5성에서 해금됩니다.');
-      expect(stdout.text()).toContain('현재 문자: 1자');
+      expect(stdout.text()).toContain('BUFFER 1');
     } finally {
       instance.unmount();
     }
@@ -260,8 +260,8 @@ describe('unlock keyboard handling', () => {
 
       const screen = stdout.text();
       expect(screen).toContain('HUD: 최근 사용자 편집을 Undo했습니다.');
-      expect(screen).toContain('직접 입력: 10타 · 현재 문자: 0자');
-      expect(screen).toContain('강화권: 1장');
+      expect(screen).toContain('INPUT 10 │ BUFFER 0');
+      expect(screen).toContain('강화권 1장');
     } finally {
       instance.unmount();
     }

@@ -141,17 +141,18 @@ describe('editor and Starforce HUD', () => {
       expect(screen).toContain('Starforce TUI Editor');
       expect(screen).toContain('▶ EDITOR (focused)');
       expect(screen).toContain('1234567890▌');
-      expect(screen).toContain('현재/다음 별: 16성 → 17성');
-      expect(screen).toContain('강화권: 1장');
-      expect(screen).toContain('성공 30% · 실패 67.9% · 파괴 2.1%');
-      expect(screen).toContain('다음 해금: 17성 Python 구문 오류 표시');
-      expect(screen).toContain('직접 입력: 10타 · 현재 문자: 10자');
-      expect(screen).toContain('소실: 실패 0자 · 파괴 0자');
-      expect(screen).toContain('생산성: 100%');
-      expect(screen).toContain('[잠금] 17성 Python 구문 오류 표시');
-      expect(screen).toContain('[잠금] 20성 Syntax highlighting');
-      expect(screen).toContain('[잠금] 22성 Git commit');
-      expect(screen).toContain('[잠금] 25성 Vim 편집 기능');
+      expect(screen).toContain('★ 16성 → 17성');
+      expect(screen).toContain('강화권 1장');
+      expect(screen).toContain('성공 ███░░░░░░░ 30%');
+      expect(screen).toContain('실패 ███████░░░ 67.9%');
+      expect(screen).toContain('파괴 ░░░░░░░░░░ 2.1%');
+      expect(screen).toContain('NEXT 17성 · Python 구문 오류');
+      expect(screen).toContain('INPUT 10 │ BUFFER 10 │ LOSS F0 D0');
+      expect(screen).toContain('PRODUCTIVITY ██████████ 100%');
+      expect(screen).toContain('17🔒 Python 오류');
+      expect(screen).toContain('20🔒 Syntax');
+      expect(screen).toContain('22◇ Git commit');
+      expect(screen).toContain('25◇ Vim');
       expect(screen).toContain('최근 결과: 없음');
     } finally {
       mounted.instance.unmount();
@@ -175,8 +176,8 @@ describe('editor and Starforce HUD', () => {
       await flushRender();
       const screen = mounted.stdout.text();
 
-      expect(screen).toContain('현재/다음 별: 1성 → 2성');
-      expect(screen).toContain('강화권: 0장');
+      expect(screen).toContain('★ 1성 → 2성');
+      expect(screen).toContain('강화권 0장');
       expect(screen).toContain('abcdefghij▌');
       expect(screen).toContain('최근 결과: 성공 (0성 → 1성)');
       expect(screen).toContain('HUD: 강화 성공: 0성 → 1성');
@@ -199,7 +200,7 @@ describe('editor and Starforce HUD', () => {
       expect(mounted.stdout.text()).toContain(
         '강화권이 없습니다. 직접 입력 10타마다 1장을 얻습니다.',
       );
-      expect(mounted.stdout.text()).toContain('현재/다음 별: 0성 → 1성');
+      expect(mounted.stdout.text()).toContain('★ 0성 → 1성');
       expect(mounted.stdout.text()).toContain('safe');
       expect(random).not.toHaveBeenCalled();
 

@@ -129,10 +129,8 @@ describe('Python syntax diagnostics in the TUI', () => {
       await flushRender();
 
       expect(syntaxChecker).not.toHaveBeenCalled();
-      expect(mounted.stdout.text()).toContain(
-        '[잠금] 17성 Python 구문 오류 표시',
-      );
-      expect(mounted.stdout.text()).not.toContain('Python 구문 검사:');
+      expect(mounted.stdout.text()).toContain('17🔒 Python 오류');
+      expect(mounted.stdout.text()).not.toContain('Python 구문 검사 중');
       expect(mounted.stdout.text()).not.toContain('▲ 구문 오류');
     } finally {
       mounted.instance.unmount();
@@ -158,9 +156,7 @@ describe('Python syntax diagnostics in the TUI', () => {
       expect(mounted.stdout.latest()).toContain(
         '▲ 구문 오류 · 1행 7열 · invalid syntax',
       );
-      expect(mounted.stdout.latest()).toContain(
-        'Python 구문 오류: 1행 7열 · invalid syntax',
-      );
+      expect(mounted.stdout.latest()).toContain('✕ 1행 7열 · invalid syntax');
     } finally {
       mounted.instance.unmount();
     }
@@ -176,15 +172,15 @@ describe('Python syntax diagnostics in the TUI', () => {
 
     try {
       await flushRender();
-      expect(mounted.stdout.latest()).toContain('Python 구문 오류:');
+      expect(mounted.stdout.latest()).toContain('✕ 1행 1열 · invalid syntax');
 
       mounted.stdin.write('x');
       await flushRender();
 
       expect(syntaxChecker).toHaveBeenLastCalledWith('x= 1\n');
-      expect(mounted.stdout.latest()).toContain('Python 구문 검사: 오류 없음');
+      expect(mounted.stdout.latest()).toContain('✓ Python 구문 정상');
       expect(mounted.stdout.latest()).not.toContain('▲ 구문 오류');
-      expect(mounted.stdout.latest()).not.toContain('Python 구문 오류:');
+      expect(mounted.stdout.latest()).not.toContain('✕ 1행 1열');
     } finally {
       mounted.instance.unmount();
     }
